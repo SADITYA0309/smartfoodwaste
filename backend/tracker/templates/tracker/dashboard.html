@@ -1,0 +1,30 @@
+{% extends 'tracker/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+  <h2>Welcome, {{ user.first_name }}!</h2>
+  <div class="button-row">
+    <a href="{% url 'edit_profile' %}" class="dashboard-btn">
+      <img src="{% static 'tracker/profile.png' %}" class="icon" alt="Edit Icon">
+      Edit Profile
+    </a>
+    
+
+    <a href="{% url 'open_camera' %}" class="dashboard-btn">
+      <img src="{% static 'tracker/camera_icon.png' %}" class="icon" alt="Camera Icon">
+      Open Camera / Scanner
+    </a>
+
+    <a href="{% url 'food_history' %}" class="dashboard-btn">
+      <img src="{% static 'tracker/history_icon.png' %}" class="icon" alt="History Icon">
+      View Food History
+    </a>
+    <a href="{% url 'add_item' %}" class="action-card">
+    <div class="icon">➕</div>
+    <div class="label">Add Item</div>
+    </a>
+
+  </div>
+</div>
+{% endblock %}

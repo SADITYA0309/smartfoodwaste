@@ -1,0 +1,20 @@
+{
+  "name": "Smart Food Tracker",
+  "short_name": "FoodTracker",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4CAF50",
+  "icons": [
+    {
+      "src": "/static/tracker/SmartFoodTracker_PWA_Assets/192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/tracker/SmartFoodTracker_PWA_Assets/512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

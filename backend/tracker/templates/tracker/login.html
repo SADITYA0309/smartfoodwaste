@@ -1,0 +1,57 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Smart Food Tracker</title>
+    <link rel="stylesheet" href="{% static 'tracker/signup.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="brand">
+            <img src="/static/tracker/logo2.png" alt="Logo" class="logo">
+            Smart Food Tracker
+        </div>
+        <div class="menu">
+            <button class="menu-btn" onclick="toggleMenu()">☰</button>
+            <div class="dropdown-content" id="dropdown">
+                <a href="#">About Us</a>
+                <a href="{% url 'signup' %}">Signup</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="content">
+        <h2>Login</h2>
+        <form method="POST" action="/login/">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+
+            <a href="{% url 'forgot_password' %}" style="color:#eee; font-size: 0.9rem; display:block; text-align:right; margin-top:-5px;">Forgot Password?</a>
+
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("dropdown").classList.toggle("show");
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.menu-btn')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    dropdowns[i].classList.remove('show');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

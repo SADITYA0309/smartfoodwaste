@@ -1,0 +1,28 @@
+<!-- templates/open_camera.html -->
+{% extends 'tracker/base.html' %}
+{% block content %}
+<h3>Camera / Scanner</h3>
+
+<p>This is a placeholder for camera functionality. In the next steps, you’ll implement camera access to detect food items.</p>
+
+<button onclick="startCamera()" class="action-button">Start Camera</button>
+
+<video id="cameraFeed" autoplay playsinline muted style="width:100%;margin-top:10px; border:1px solid #ccc; border-radius:10px;"></video>
+
+<script>
+  function startCamera() {
+    const video = document.getElementById("cameraFeed");
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(function (stream) {
+          video.srcObject = stream;
+        })
+        .catch(function (error) {
+          alert("Camera access failed: " + error.message);
+        });
+    } else {
+      alert("Camera not supported by your browser.");
+    }
+  }
+</script>
+{% endblock %}

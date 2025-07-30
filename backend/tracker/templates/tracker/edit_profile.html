@@ -1,0 +1,108 @@
+{% extends 'tracker/base.html' %}
+{% block content %}
+
+<style>
+  .edit-form-container {
+    max-width: 400px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    font-family: Poppins, sans-serif;
+  }
+
+  .edit-form-container h3 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .edit-form-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+
+  .edit-form-container input[type="text"],
+  .edit-form-container input[type="email"],
+  .edit-form-container input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+    font-size: 16px;
+  }
+
+  .edit-form-container img {
+    display: block;
+    margin: 10px auto;
+    width: 100px;
+    border-radius: 8px;
+  }
+
+  .edit-form-container button {
+    width: 100%;
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .edit-form-container button:hover {
+    background-color: #45a049;
+  }
+
+  .back-btn {
+    display: inline-block;
+    margin-bottom: 15px;
+    text-align: center;
+    padding: 10px 16px;
+    background-color: #ccc;
+    color: #333;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .back-btn:hover {
+    background-color: #bbb;
+  }
+</style>
+
+<div class="edit-form-container">
+
+  <a href="{% url 'dashboard' %}" class="back-btn">← Back to Dashboard</a>
+
+  <h3>Edit Profile</h3>
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <label for="first_name">Full Name</label>
+    <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" value="{{ user.email }}" required>
+
+    <label for="profile_picture">Profile Image</label>
+    <input type="file" id="profile_picture" name="profile_picture">
+
+<<<<<<< HEAD
+{% if user.profile and user.profile.profile_picture %}
+  <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture">
+{% endif %}
+=======
+    {% if user.profile.profile_picture %}
+      <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture">
+    {% endif %}
+
+>>>>>>> b3f9822bebec3b90f8b8c02c56acc278ad26fcad
+    <button type="submit">Save Changes</button>
+  </form>
+</div>
+
+{% endblock %}

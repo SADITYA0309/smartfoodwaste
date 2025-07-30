@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Signup - Smart Food Tracker</title>
+    <link rel="stylesheet" href="{% static 'tracker/signup.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="hero">
+        <!-- Navbar -->
+        <div class="navbar">
+            <div class="brand">
+                <img src="/static/tracker/logo2.png" alt="Logo" class="logo">
+                <span>Smart Food Tracker</span>
+            </div>
+            <div class="menu">
+                <button class="menu-btn" onclick="toggleDropdown()">☰</button>
+                <div class="dropdown-content" id="dropdown">
+                    <a href="#">About Us</a>
+                    <a href="{% url 'login' %}">Login</a>
+                </div>
+            </div>
+        </div>
+        <!-- Signup Form -->
+        <div class="content">
+            <h2>Create an Account</h2>
+<form method="POST">
+    {% csrf_token %}
+    <input type="text" name="full_name" placeholder="Full Name" required><br>
+    <input type="text" name="username" placeholder="Username" required><br>
+    <input type="email" name="email" placeholder="Email" required><br>
+    <input type="password" name="password" placeholder="Password" required><br>
+    <button type="submit">Sign Up</button>
+</form>
+
+        </div>
+    </div>
+
+    <script>
+        function toggleDropdown() {
+            document.getElementById("dropdown").classList.toggle("show");
+        }
+    </script>
+</body>
+</html>

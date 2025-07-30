@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Food Tracker</title>
+
+  <meta name="theme-color" content="#4CAF50">
+  <link rel="manifest" href="{% static 'tracker/manifest.json' %}">
+  <link rel="stylesheet" href="{% static 'tracker/welcome.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Icons for PWA -->
+  <link rel="icon" type="image/png" sizes="192x192" href="{% static 'tracker/icon-192x192.png' %}">
+  <link rel="icon" type="image/png" sizes="512x512" href="{% static 'tracker/icon-512x512.png' %}">
+
+  <script>
+    let deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Optionally show your own install button
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register("{% static 'tracker/service-worker.js' %}")
+        .then(function(reg) {
+          console.log("✅ Service Worker registered!", reg);
+        }).catch(function(err) {
+          console.log("❌ Service Worker registration failed: ", err);
+        });
+    }
+  </script>
+</head>
+<body>
+    <div class="hero">
+        <!-- Navbar -->
+        <div class="navbar">
+            <div class="brand">
+                
+                <img src="/static/tracker/logo2.png" alt="Logo" class="logo">
+                <span>Smart Food Tracker</span>
+            </div>
+            <div class="menu">
+                <button class="menu-btn" onclick="toggleDropdown()">☰</button>
+                <div class="dropdown-content" id="dropdown">
+                    <a href="#">About Us</a>
+                    <a href="{% url 'login' %}">Login</a>
+                    <a href="{% url 'signup' %}">Signup</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dark overlay -->
+        <div class="overlay"></div>
+
+        <!-- Content -->
+        <div class="content">
+            <h1>Track Your Food, Save the Planet</h1>
+            <p>Smart solutions to reduce food waste and monitor expiry dates.</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleDropdown() {
+            document.getElementById("dropdown").classList.toggle("show");
+        }
+      
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Food Waste Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- External Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'tracker/dash.css' %}">
+
+  <link rel="manifest" href="{% static 'tracker/manifest.json' %}">
+
+<!-- iOS support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="{% static 'tracker/SmartFoodTracker_PWA_Assets/192.png' %}">
+<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#4CAF50">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-left">
+                <div class="brand">
+                
+                <img src="/static/tracker/logo2.png" alt="Logo" class="logo">
+                <span>Smart Food Tracker</span>
+                </div>
+    
+  </div>
+  <div class="nav-right">
+    {% if user.is_authenticated %}
+      {% if user.profile.profile_picture %}
+            <a href="{% url 'dashboard' %}" style="color: white; text-decoration: none; font-weight: 500;">
+        Dashboard
+</a>
+        <img src="{{ user.profile.profile_picture.url }}" alt="Profile Pic">
+      {% else %}
+        <img src="{% static 'default-user.png' %}" alt="Default Pic">
+      {% endif %}
+
+      <span>{{ user.get_full_name }}</span>
+
+      <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">Logout</button>
+      </form>
+    {% else %}
+      <a href="{% url 'login' %}">Login</a>
+    {% endif %}
+  </div>
+</nav>
+
+
+  <div class="container">
+    {% block content %}
+    {% endblock %}
+  </div>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register("{% static 'service-worker.js' %}")
+    .then(function(registration) {
+      console.log('Service Worker registered with scope:', registration.scope);
+    })
+    .catch(function(error) {
+      console.error('Service Worker registration failed:', error);
+    });
+  }
+</script>
+
+</body>
+</html>
