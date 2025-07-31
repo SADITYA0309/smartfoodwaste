@@ -1,28 +1,174 @@
-<!-- templates/open_camera.html -->
 {% extends 'tracker/base.html' %}
 {% block content %}
-<h3>Camera / Scanner</h3>
+<h3 style="text-align: center;">Camera / Barcode & OCR Scanner</h3>
 
-<p>This is a placeholder for camera functionality. In the next steps, you’ll implement camera access to detect food items.</p>
+<p style="text-align: center;">Align the barcode or label within the frame and scan.</p>
 
-<button onclick="startCamera()" class="action-button">Start Camera</button>
+<div style="text-align: center; margin-bottom: 10px;">
+  <button onclick="startCamera()" class="action-button">Start Camera</button>
+  <button onclick="captureImage()" class="action-button" style="margin-left: 10px;">Capture Label</button>
+</div>
 
-<video id="cameraFeed" autoplay playsinline muted style="width:100%;margin-top:10px; border:1px solid #ccc; border-radius:10px;"></video>
+<video id="cameraFeed" autoplay playsinline muted
+  style="width:100%; margin-top:10px; border:1px solid #ccc; border-radius:10px;"></video>
+
+<canvas id="captureCanvas" style="display:none;"></canvas>
+
+<p id="scanResult" style="text-align: center; font-weight: bold; margin-top: 15px; white-space: pre-line;"></p>
+
+<hr style="margin: 20px 0;">
+
+<!-- Manual Upload Fallback -->
+<form id="uploadForm" enctype="multipart/form-data" style="text-align: center;">
+  <input type="file" name="image" accept="image/*" capture="environment" required>
+  <button type="submit" class="action-button" style="margin-top: 10px;">Upload Image</button>
+</form>
+<pre id="ocrResult" style="text-align: center; margin-top: 10px; font-weight: bold;"></pre>
+
+<!-- ✅ Load ZXing library first -->
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.18.6/umd/index.min.js"></script>
 
 <script>
-  function startCamera() {
+  let codeReader = null;
+  let currentStream = null;
+
+  async function startCamera() {
     const video = document.getElementById("cameraFeed");
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-        .then(function (stream) {
-          video.srcObject = stream;
-        })
-        .catch(function (error) {
-          alert("Camera access failed: " + error.message);
-        });
-    } else {
-      alert("Camera not supported by your browser.");
+    const scanResult = document.getElementById("scanResult");
+
+    try {
+      if (!ZXing || !ZXing.BrowserMultiFormatReader) {
+        throw new Error("ZXing is not loaded properly.");
+      }
+
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" }
+      });
+
+      currentStream = stream;
+      video.srcObject = stream;
+
+      codeReader = new ZXing.BrowserMultiFormatReader();
+
+      codeReader.decodeFromVideoDevice(null, 'cameraFeed', (result, err) => {
+        if (result) {
+          const barcode = result.text;
+          scanResult.textContent = "Scanned: " + barcode;
+          codeReader.reset();
+
+          fetch('/scan-label-ocr/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ barcode: barcode })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              scanResult.textContent += `\n✔️ Product saved: ${data.name}`;
+            } else {
+              scanResult.textContent += `\n❌ Error: ${data.error}`;
+            }
+          });
+        }
+      });
+    } catch (error) {
+      alert("Camera access failed: " + error.message);
     }
   }
+
+  function captureImage() {
+    const video = document.getElementById("cameraFeed");
+    const canvas = document.getElementById("captureCanvas");
+    const resultDisplay = document.getElementById("scanResult");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(function(blob) {
+      const formData = new FormData();
+      formData.append("image", blob, "snapshot.png");
+      sendImageToScan(blob);
+
+      fetch('/api/process-image/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          resultDisplay.textContent = `📦 Product: ${data.name || 'N/A'}\n📆 MFD: ${data.mfd || 'N/A'}\n⏳ EXP: ${data.exp || 'N/A'}`;
+          if (data.prompt) {
+            alert(data.prompt);
+          }
+        } else {
+          resultDisplay.textContent = "❌ Error: " + data.error;
+        }
+      });
+    }, "image/png");
+  }
+function sendImageToScan(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    fetch('/api/auto-scan/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.mode === 'barcode') {
+            alert("✅ Barcode scanned: " + data.name);
+        } else if (data.mode === 'ocr') {
+            if (data.status === "need_more_image") {
+                alert(data.message);
+            } else {
+                alert("✅ OCR extracted:\nMFD: " + data.mfd + "\nEXP: " + data.exp);
+            }
+        } else {
+            alert("❌ No barcode or text found.");
+        }
+    });
+}
+  // Manual Upload
+  document.getElementById('uploadForm').onsubmit = function (e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+
+  fetch('/api/scan-label/',{  // Make sure this matches your URL config
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    const output = document.getElementById('ocrResult');
+    if (data.success) {
+      const extracted = data.extracted;
+      alert("✅ Uploaded successfully and saved to history!");
+
+      output.textContent =
+        `📆 MFD: ${extracted.mfd || 'Not found'}\n` +
+        `⏳ EXP: ${extracted.exp || 'Not found'}\n` +
+        `${extracted.note ? '📝 Note: ' + extracted.note : ''}`;
+    } else {
+      alert("❌ Upload failed: " + data.error);
+      output.textContent = "❌ Error: " + data.error;
+    }
+  });
+};
 </script>
 {% endblock %}
