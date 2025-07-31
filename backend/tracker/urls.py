@@ -22,8 +22,8 @@ urlpatterns = [
     path('food-history/', views.food_history, name='food_history'),
     path('add-item/', views.add_item, name='add_item'),
     path('food-history/delete/<int:item_id>/', views.delete_item, name='delete_item'),
-<<<<<<< HEAD
     path('run-expiry-check/', views.run_expiry_check, name='run_expiry_check'),
-=======
->>>>>>> b3f9822bebec3b90f8b8c02c56acc278ad26fcad
+    path('api/scan-barcode/', views.scan_barcode, name='scan_barcode'),
+    path('api/scan-label/', views.scan_label_ocr, name='scan_label_ocr'),
+    
 ]
