@@ -109,11 +109,11 @@
       <td data-label="Purchase Date">{{ item.purchase_date }}</td>
       <td data-label="Action">
         <form method="POST" action="{% url 'delete_item' item.id %}" style="display:inline;">
-<<<<<<< HEAD
+
           {% csrf_token %}  
-=======
+
           {% csrf_token %}
->>>>>>> b3f9822bebec3b90f8b8c02c56acc278ad26fcad
+
           <button class="delete-btn" title="Delete" onclick="return confirm('Are you sure you want to delete this item?')">🗑️</button>
         </form>
       </td>
