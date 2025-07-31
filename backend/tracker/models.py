@@ -4,17 +4,17 @@ from django.contrib.auth.models import User
 from django.db import models
 
 class FoodItem(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE) 
-    name = models.CharField(max_length=100)
-    expiry_date = models.DateField()
-    quantity = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product_name = models.CharField(max_length=255)
+    manufacturing_date = models.DateField(null=True, blank=True)
+    expiry_date = models.DateField(null=True, blank=True)
+    quantity = models.IntegerField(default=1)
     image = models.ImageField(upload_to='food_images/', null=True, blank=True)
-    alert_sent = models.BooleanField(default=False) 
-    
+    alert_sent = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.name
-    
+        return self.product_name
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
@@ -37,7 +37,7 @@ class FoodHistory(models.Model):
 
     def __str__(self):
         return f"{self.product_name} - {self.user.username}"
-<<<<<<< HEAD
+
 
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -47,5 +47,3 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username}"
-=======
->>>>>>> b3f9822bebec3b90f8b8c02c56acc278ad26fcad
