@@ -11,6 +11,13 @@ from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+import pytesseract
+from PIL import Image
+
+# Point to your tesseract installation
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
 @api_view(['GET'])
 def test_api(request):
     return Response({"message": "Smart Food Tracker API working!"})
@@ -228,7 +235,6 @@ def delete_item(request, item_id):
     item = get_object_or_404(FoodHistory, id=item_id, user=request.user)
     item.delete()
     return redirect('food_history')
-<<<<<<< HEAD
 
 # tasks.py or in your views.py temporarily
 from datetime import date, timedelta
@@ -260,5 +266,130 @@ from django.http import JsonResponse
 def run_expiry_check(request):
     check_expiring_items()
     return JsonResponse({'status': 'Check complete, emails sent if needed'})
-=======
->>>>>>> b3f9822bebec3b90f8b8c02c56acc278ad26fcad
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from .models import FoodItem
+import json
+import datetime
+
+@csrf_exempt
+@login_required
+def scan_barcode(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            barcode = data.get('barcode')
+
+            if not barcode:
+                return JsonResponse({'success': False, 'error': 'No barcode received'}, status=400)
+
+            # Dummy logic for now — replace with API call or DB
+            product_name = f"Product {barcode[-4:]}"  # Simulated name
+            mfd = datetime.date.today() - datetime.timedelta(days=30)
+            exp = datetime.date.today() + datetime.timedelta(days=180)
+
+            # Save to database
+            FoodItem.objects.create(
+                user=request.user,
+                name=product_name,
+                manufacturing_date=mfd,
+                expiry_date=exp
+            )
+
+            return JsonResponse({'success': True, 'name': product_name})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
+
+# tracker/views.py
+import pytesseract
+from PIL import Image
+import re
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import default_storage
+
+from django.core.files.storage import default_storage
+from PIL import Image
+import pytesseract
+import re
+from datetime import datetime
+from .models import FoodHistory  # Adjust import if needed
+
+from .models import FoodItem  # Make sure this is imported
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import FoodItem
+from datetime import datetime
+from PIL import Image
+import pytesseract
+import re
+
+@csrf_exempt
+def scan_label_ocr(request):
+    if request.method == 'POST' and request.FILES.get('image'):
+        image_file = request.FILES['image']
+        image = Image.open(image_file)
+
+        text = pytesseract.image_to_string(image)
+        print("=== OCR Output ===")
+        print(text)
+
+        text_lower = text.lower()
+
+        # Updated pattern: match any MM/YYYY or MM-YYYY
+        date_matches = re.findall(r'(\d{2}[/-]\d{4})', text_lower)
+
+        mfd = None
+        exp = None
+
+        if "mfd" in text_lower or "mf" in text_lower:
+            mfd = date_matches[0] if len(date_matches) > 0 else None
+        if "exp" in text_lower or "xp" in text_lower:
+            exp = date_matches[-1] if len(date_matches) > 0 else None
+
+        # Fallback: assume first = mfd, second = exp
+        if not mfd and len(date_matches) >= 1:
+            mfd = date_matches[0]
+        if not exp and len(date_matches) >= 2:
+            exp = date_matches[1]
+
+        note = None
+        if "look above" in text_lower:
+            note = "Check above the label"
+        elif "look below" in text_lower:
+            note = "Check below the label"
+
+        saved = False
+
+        if request.user.is_authenticated and mfd and exp:
+            try:
+                FoodHistory.objects.create(
+                    user=request.user,
+                    product_name="OCR Item",
+                    manufacturing_date=datetime.strptime(mfd, "%m/%Y").date(),
+                    expiry_date=datetime.strptime(exp, "%m/%Y").date()
+                )
+                saved = True
+                print("✅ Saved to FoodHistory")
+            except Exception as e:
+                print("❌ Error saving to FoodHistory:", str(e))
+                return JsonResponse({'success': False, 'error': str(e)})
+
+        return JsonResponse({
+            'success': True,
+            'extracted': {
+                'mfd': mfd,
+                'exp': exp,
+                'note': note
+            },
+            'saved': saved,
+            'raw_text': text
+        })
+
+    return JsonResponse({'success': False, 'error': 'No image received'})
